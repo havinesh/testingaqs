@@ -1,10 +1,235 @@
 <svelte:options tag="chat-widget" />
 
 <script>
+  export let app_id;
+  export let app_secret
+  export let customer_id;
+
+  // import './styles/WidgetStyles.css'
+  import './styles/WidgetStyles.css'
+
+  import ChatHeader from './components/ChatHeader.svelte';
+
+  import { onMount } from 'svelte';
+  import { chatSocket } from "./socket";
+  import { writable } from 'svelte/store';
+  import CookieMap from './CookieMap.svelte';
+  import { DOMAIN } from './config/api-variables';
+
+  import axios from 'axios';
+  import Auth from './Auth.svelte';
+
+  import AuthMain from './components/AuthMain.svelte';
+  import { getAuthKey, getPersonId, getPersonOrgOfficeId } from './utils/cookie/user';
+
+  import { isAuthenticated, userDetails } from './stores/authStores.js';
+
+  const headers = { 'Authorization': 'Token 828a55aed395aeb1b9092d0a82f7aea31b3241ee713587f22648d025559e7fc3' };
+
+  const CustomAuthHeader = { 'CLIENT_ID': '1', 'CLIENT_SECRET': '1'}
+
+  const config = {
+    headers: { 'x-client-id': app_id, 'x-client-secret': app_secret }
+  };
+
+  $: console.log($userDetails, 'userDetails')
+
+
+  // axios.post('https://test.cleandesk.co.in/api/v1/rl/send-otp/',{ app_type: 'CITIZEN', otp_reason: 'LOGIN', mobile: '7555629124', mobile_country_code: '91' })
+  // .then(response => {
+  //   // Handle the response data
+  //   console.log(response.data);
+  // })
+  // .catch(error => {
+  //   // Handle the error
+  //   console.error(error);
+  // });
+
+//   const loginCred = () => {
+//     axios.post('https://test.cleandesk.co.in/api/v1/rl/login/',{
+//     mobile: "7555629124",
+//     mobile_country_code: "91",
+//     app_type: "CITIZEN",
+//     mobile_otp: "755562"
+// })
+//   .then(response => {
+//     // Handle the response data
+//     console.log(response.data);
+//   })
+//   .catch(error => {
+//     // Handle the error
+//     console.error(error);
+//   });
+//   }
+
+  // axios.post('https://test.cleandesk.co.in/api/v1/user/profile/',{ person_id: null }, { headers })
+  // .then(response => {
+  //   // Handle the response data
+  //   console.log(response.data);
+  // })
+  // .catch(error => {
+  //   // Handle the error
+  //   console.error(error);
+  // });
+
+  // axios.post('https://test.cleandesk.co.in/api/v1/rl/generate/gateway/auth/token',{ customer_id: customer_id }, config)
+  // .then(response => {
+  //   // Handle the response data
+  //   console.log(response.data);
+  // })
+  // .catch(error => {
+  //   // Handle the error
+  //   console.error(error);
+  // });
+
   let isVisible = false;
+  let authFormVisible = false;
+  let firstOpen = false;
+  // const message = writable();
+  let messages = []
+
+  let ticketMainId = null;
+  let textareaValue = '';
+
+  function signInForm() {
+    authFormVisible= true
+    console.log('signInForm')
+  }
+
   function showChatWidget() {
     isVisible = !isVisible;
+    firstOpen = true;
   }
+  if(!!getAuthKey() === false) console.log('null')
+
+  console.log(getPersonId(), 'personId')
+
+  let havinesh;
+  // $: {
+  //   console.log($isAuthenticated, 'isAuthenticated')
+  //   if ($isAuthenticated && firstOpen) {
+  //     chatSocket.emit("chat_ai_ticket_message_v2", {
+  //     app_type: "CITIZEN",
+  //     organisation_office_id: "1673436078069",
+  //     constituency_id: 1,
+  //     ticket_main_id: null,
+  //     person_id: getPersonId(),
+  //     content: null,
+  //     is_media_available: null,
+  //     is_location_available: null,
+  //     latitude: null,
+  //     longitude: null,
+  //     locality: null,
+  //     address: null,
+  //     category_id: null,
+  //     required_inputs: null,
+  //     ticket_id: null,
+  //   });
+  //     console.log('should run this')
+  //   } else console.log('should not run this')
+  // }
+
+  // const cookieData = document.cookie;
+  // console.log(cookieData)
+
+  //  let decodedCookie = decodeURIComponent(document.cookie);
+  //   let ca = decodedCookie.split(';');
+  //   for(let i = 0; i < ca.length; i++) {
+  //       let c = ca[i];
+  //       while (c.charAt(0) == ' ') {
+  //           c = c.substring(1);
+  //           console.log(c, ' c')
+  //       }
+  //       // if (c.indexOf(cookieName) == 0) {
+  //       //     return c.substring(cookieName.length, c.length);
+  //       // }
+  //   }
+
+  // let cookieValue = '';
+
+  // onMount(() => {
+  //   // Retrieve the cookie on component mount
+
+
+  //   const cookies = document.cookie.split(';');
+  //   for (let i = 0; i < cookies.length; i++) {
+  //     const cookie = cookies[i].trim();
+  //     console.log(cookie, 'cookie')
+  //     if (cookie.startsWith('beta_userToken=')) {
+  //       cookieValue = cookie.substring('beta_userToken='.length, cookie.length);
+  //       console.log(cookieValue, ' cookieValue')
+  //       break;
+  //     }
+  //   }
+  // });
+
+  onMount(() => {
+    // cookieData = cookies.get('yourCookieName')
+
+    // const session = cookies.get('session');
+
+    // if(getAuthKey !== null) {
+    //   isAuthenticated.set(true);
+    // }
+
+    if(!!getAuthKey() && getPersonId() && getPersonOrgOfficeId() !== false) isAuthenticated.set(true);
+
+    chatSocket.on("connect", () => {
+      // console.log(chatSocket.connected);
+    });
+    // chatSocket.emit("chat_ai_ticket_message_v2", {
+    //   app_type: "CITIZEN",
+    //   organisation_office_id: "1673436078069",
+    //   constituency_id: 1,
+    //   ticket_main_id: null,
+    //   person_id: getPersonId(),
+    //   content: null,
+    //   is_media_available: null,
+    //   is_location_available: null,
+    //   latitude: null,
+    //   longitude: null,
+    //   locality: null,
+    //   address: null,
+    //   category_id: null,
+    //   required_inputs: null,
+    //   ticket_id: null,
+    // });
+	})
+
+  chatSocket.on('chat_ai_ticket_message_v2', data => {
+    if (data.person_id !== parseInt(getPersonId())) {
+      console.log('different id')
+      messages = [...messages, data]
+    } else console.log('same id')
+    if (messages.length === 1) {
+      ticketMainId = data.ticket_main_id;
+    }
+    console.log(messages)
+  });
+
+  const sendMessage = () => {
+    chatSocket.emit("chat_ai_ticket_message_v2", {
+      app_type: "CITIZEN",
+      organisation_office_id: "1668510062923",
+      constituency_id: 1,
+      ticket_main_id: ticketMainId,
+      person_id: getPersonId(),
+      content: textareaValue,
+      is_media_available: null,
+      is_location_available: null,
+      latitude: null,
+      longitude: null,
+      locality: null,
+      address: null,
+      category_id: null,
+      required_inputs: null,
+      ticket_id: null,
+    });
+    messages = [...messages, { content: textareaValue, person_id: parseInt(getPersonId()) }]
+    textareaValue = '';
+  };
+  console.log(messages)
+
 </script>
 
 {#if isVisible}
@@ -14,19 +239,36 @@
         <div class="smith-chat">
           <div class="smith-chat-header">
             <div class="smith-header-profile">
-              <div class="smith-header-profile-name">cleandesk.ai</div>
+              <div class="smith-avatar">
+                <div class="smith-avatar">
+                  <!-- <img src="https://test.cleandesk.co.in/media/person/profile/1668509937389/1685011029653_1819.jpg" alt="avatar"> -->
+                </div>
+              </div>
+              <div class="smith-header-profile-name">Timbl Broadband</div>
               <div class="smith-header-profile-intro">
-                <span>Conversational AI provides community service.</span>
+                <span>Conversational AI provides community service. APP ID {app_id}</span>
               </div>
               <div class="smith-header-profile-cta">
-                <a href="">Sign up</a>
+                <!-- <a href="">Sign up</a> -->
+                <!-- <button type="link" on:click={signInForm}>Sign in</button>
+                {#if authFormVisible === true}
+                  <div class="auth-form-container">
+                    <input type="text" placeholder="Enter your email or phone" />
+                    <input type="password" placeholder="Enter your password" />
+                    <button type="button" on:click={loginCred}>Sign in</button>
+                  </div>
+                {/if} -->
+                <!-- <Auth /> -->
               </div>
             </div>
           </div>
+          <!-- <ChatHeader /> -->
           <div class="smith-chat-body">
             <div class="smith-conversation-container">
               <div class="smith-conversation-body-parts">
                 <div class="smith-conversation-parts-wrapper">
+                  {#each messages as message}
+
                   <div class="smith-conversation-parts">
                     <div
                       class="smith-conversation-part smith-conversation-part-admin"
@@ -36,22 +278,37 @@
                       >
                         <div class="smith-comment-container-admin-avatar">
                           <div class="smith-avatar">
+                            {#if message.person_id !== '1668509937389'}
                             <img
-                              src="https://prod-smith-dynamic.imgix.net/static/logos/smith-footer-logo.png"
+                              src={'https://test.cleandesk.co.in' + message.person_avatar} alt="avatar"
                             />
+                            <!-- <img
+                              src="https://prod-smith-dynamic.imgix.net/static/logos/smith-footer-logo.png"
+                            /> -->
+                            <!-- <h3>ai</h3> -->
+                            {:else}
+                            <img
+                              src='https://test.cleandesk.co.in/media/person/profile/1668511823013/1685110291504_7316.jpg'
+                            />
+                            {/if}
                           </div>
                         </div>
-                        <div class="smith-comment">
-                          <div class="smith-blocks">
-                            <div class="smith-block smith-block-paragraph">
-                              Hi there! 👋 Let me know if you have any
-                              questions!
+                          <div class="smith-comment">
+                            <div class="smith-blocks">
+                              <div class="smith-block smith-block-paragraph">
+                                {message.content}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                          {#if message.media_type === 'application/pdf'}
+                          <div style="cursor: pointer; font-size: 12px;">
+                            <a class="smith-block smith-block-paragraph" on:click={() => window.open('https://test.cleandesk.co.in' + message.media_url, '_blank')}>Click here to open pdf</a>
+                          </div>
+                          {/if}
                       </div>
                     </div>
                   </div>
+                  {/each}
                 </div>
               </div>
             </div>
@@ -61,8 +318,8 @@
     </div>
     <div class="smith-chat-bar">
       <div class="smith-chat-bar-message">
-        <textarea placeholder="Type your message" rows="1" />
-        <button type="button" class="btn send-btn"> Send </button>
+        <textarea bind:value={textareaValue} placeholder="Type your message" rows="1" name="message-to-send" id="message-to-send" />
+        <button on:click={sendMessage} type="button" class="btn send-btn"> Send </button>
       </div>
     </div>
   </div>
@@ -72,7 +329,30 @@
 <div class="smith-launcher" />
 <button on:click={showChatWidget} class="smith-launcher-frame">click</button>
 
+<button on:click={() => isAuthenticated.set(false)}>set isauth false</button>
 <!-- </div> -->
+
+<CookieMap propValue='hi' />
+{#if firstOpen === true}
+<AuthMain />
+{/if}
+
+{#if getAuthKey() && getPersonId() && getPersonOrgOfficeId() !== null}
+  <div>authKey = {getAuthKey()}</div>
+  <div>personId = {getPersonId()}</div>
+  <div>personOrgOfficeId = {getPersonOrgOfficeId()}</div>
+{/if}
+
+{#if $isAuthenticated}
+  <p>User is authenticated.</p>
+{:else}
+  <p>User is not authenticated.</p>
+{/if}
+
+
+  <div class="havinesh">
+    hi
+  </div>
 
 <style>
   body {
@@ -155,7 +435,6 @@
   }
 
   #smith-container .smith-header-profile {
-    padding: 32px 48px 16px 48px;
     box-sizing: border-box;
     text-align: center;
   }
@@ -167,7 +446,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 4px;
+    margin-bottom: 14px;
   }
 
   #smith-container .smith-header-profile-intro {
@@ -214,7 +493,7 @@
   }
 
   #smith-container .smith-conversation-parts {
-    padding: 24px 20px 0;
+    padding: 0px 20px;
     display: flex;
     flex-flow: row wrap;
   }
@@ -359,5 +638,22 @@
     box-shadow: 0px 2px 4px rgba(0, 18, 26, 0.08),
       0px 3px 12px rgba(0, 18, 26, 0.16), 0 2px 14px 0 rgba(0, 18, 26, 0.2);
     opacity: 1;
+  }
+
+  .auth-form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #chat-header-container .chat-header {
+    padding: 12px;
+    display: flex;
+  }
+  #chat-header-container .chat-header-avatar img {
+    height: 20px;
+    width: 20px;
+    margin-right: 8px;
   }
 </style>
