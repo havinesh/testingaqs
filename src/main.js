@@ -1,10 +1,13 @@
 import NewApp from "./NewApp.svelte";
 import App from "./App.svelte";
+import FinalApp from "./FinalApp.svelte";
 // import ChatHeader from "./components/ChatHeader.svelte";
 
-const app = new NewApp({
+// const app = new havinesh({
+
+const app = new FinalApp({
   // const app = new ChatHeader({
-  target: document.body,
+  // target: document.body,
   // props: {
   // 	name: 'world'
   // }

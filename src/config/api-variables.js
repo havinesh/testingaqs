@@ -42,6 +42,7 @@ export const CHAT_MODULE = `${CHAT_DOMAIN}/messenger`;
 // v2
 export const LEGISLATOR_MANAGEMENT_MODULE_V2 = `${BASIC_URL_V2}/organisation`;
 export const UTILITY_MODULE_V2 = `${BASIC_URL_V2}/utility`;
+export const HELPDESK_MODULE_V2 = `${BASIC_URL_V2}/hd`;
 
 // v3
 export const UTILITY_MODULE_V3 = `${BASIC_URL_V3}/utility`;

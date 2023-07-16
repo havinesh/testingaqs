@@ -11,13 +11,11 @@
   import ChatHeader from './components/ChatHeader.svelte';
 
   import { onMount } from 'svelte';
-  import { chatSocket } from "./socket";
+  // import { chatSocket } from "./socket";
   import { writable } from 'svelte/store';
-  import CookieMap from './CookieMap.svelte';
   import { DOMAIN } from './config/api-variables';
 
   import axios from 'axios';
-  import Auth from './Auth.svelte';
 
   import AuthMain from './components/AuthMain.svelte';
   import { getAuthKey, getPersonId, getPersonOrgOfficeId } from './utils/cookie/user';
@@ -174,9 +172,9 @@
 
     if(!!getAuthKey() && getPersonId() && getPersonOrgOfficeId() !== false) isAuthenticated.set(true);
 
-    chatSocket.on("connect", () => {
-      // console.log(chatSocket.connected);
-    });
+    // chatSocket.on("connect", () => {
+    //   // console.log(chatSocket.connected);
+    // });
     // chatSocket.emit("chat_ai_ticket_message_v2", {
     //   app_type: "CITIZEN",
     //   organisation_office_id: "1673436078069",
@@ -196,35 +194,35 @@
     // });
 	})
 
-  chatSocket.on('chat_ai_ticket_message_v2', data => {
-    if (data.person_id !== parseInt(getPersonId())) {
-      console.log('different id')
-      messages = [...messages, data]
-    } else console.log('same id')
-    if (messages.length === 1) {
-      ticketMainId = data.ticket_main_id;
-    }
-    console.log(messages)
-  });
+  // chatSocket.on('chat_ai_ticket_message_v2', data => {
+  //   if (data.person_id !== parseInt(getPersonId())) {
+  //     console.log('different id')
+  //     messages = [...messages, data]
+  //   } else console.log('same id')
+  //   if (messages.length === 1) {
+  //     ticketMainId = data.ticket_main_id;
+  //   }
+  //   console.log(messages)
+  // });
 
   const sendMessage = () => {
-    chatSocket.emit("chat_ai_ticket_message_v2", {
-      app_type: "CITIZEN",
-      organisation_office_id: "1668510062923",
-      constituency_id: 1,
-      ticket_main_id: ticketMainId,
-      person_id: getPersonId(),
-      content: textareaValue,
-      is_media_available: null,
-      is_location_available: null,
-      latitude: null,
-      longitude: null,
-      locality: null,
-      address: null,
-      category_id: null,
-      required_inputs: null,
-      ticket_id: null,
-    });
+    // chatSocket.emit("chat_ai_ticket_message_v2", {
+    //   app_type: "CITIZEN",
+    //   organisation_office_id: "1668510062923",
+    //   constituency_id: 1,
+    //   ticket_main_id: ticketMainId,
+    //   person_id: getPersonId(),
+    //   content: textareaValue,
+    //   is_media_available: null,
+    //   is_location_available: null,
+    //   latitude: null,
+    //   longitude: null,
+    //   locality: null,
+    //   address: null,
+    //   category_id: null,
+    //   required_inputs: null,
+    //   ticket_id: null,
+    // });
     messages = [...messages, { content: textareaValue, person_id: parseInt(getPersonId()) }]
     textareaValue = '';
   };
@@ -332,7 +330,6 @@
 <button on:click={() => isAuthenticated.set(false)}>set isauth false</button>
 <!-- </div> -->
 
-<CookieMap propValue='hi' />
 {#if firstOpen === true}
 <AuthMain />
 {/if}

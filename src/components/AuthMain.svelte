@@ -11,10 +11,11 @@
   export let customer_id;
 
   import axios from "axios";
+  import io from "socket.io-client";
   import { onMount } from "svelte";
   import { getAuthKey, getPersonId, getPersonOrgOfficeId, setAuthKey, setPersonId, setPersonOrgOfficeId } from "../utils/cookie/user";
   import { isAuthenticated, userDetails } from '../stores/authStores.js';
-  import { chatSocket } from "../socket";
+  // import { chatSocket } from "../utils/socket/socketConfig.js";
 
 
   const authHeaderConfig = {
@@ -44,6 +45,12 @@
   //   }
   // })
 
+  const chatSocket = io("https://support.foop.com", {
+    query: {
+      token: getAuthKey(),
+    },
+  });
+
   $: {
     if ($isAuthenticated) {
       const headers = { 'Authorization': 'Token ' + getAuthKey() };
@@ -52,10 +59,10 @@
       .then(response => {
         // Handle the response data
         if (response.data.statusCode === 'S10001') {
+          userDetails.set(response?.data?.rows);
           chatSocket.on("connect", () => {
             // console.log(chatSocket.connected);
           });
-          userDetails.set(response?.data?.rows);
           chatSocket.emit("chat_ai_ticket_message_v2", {
             app_type: "CITIZEN",
             organisation_office_id: getPersonOrgOfficeId(),
@@ -83,9 +90,5 @@
 
     }
   }
-
-  $: console.log($userDetails?.user_id, 'userDetails')
-
-
 
 </script>
