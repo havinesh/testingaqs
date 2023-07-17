@@ -2182,10 +2182,10 @@ var app = (function () {
 
     var binary = {};
 
-    var toString$2 = {}.toString;
+    var toString$3 = {}.toString;
 
     var isarray = Array.isArray || function (arr) {
-      return toString$2.call(arr) == '[object Array]';
+      return toString$3.call(arr) == '[object Array]';
     };
 
     var isBuffer$1 = isBuf$1;
@@ -2214,11 +2214,11 @@ var app = (function () {
      * Module requirements
      */
 
-    var isArray$1 = isarray;
+    var isArray$2 = isarray;
     var isBuf = isBuffer$1;
-    var toString$1 = Object.prototype.toString;
-    var withNativeBlob = typeof Blob === 'function' || (typeof Blob !== 'undefined' && toString$1.call(Blob) === '[object BlobConstructor]');
-    var withNativeFile = typeof File === 'function' || (typeof File !== 'undefined' && toString$1.call(File) === '[object FileConstructor]');
+    var toString$2 = Object.prototype.toString;
+    var withNativeBlob$1 = typeof Blob === 'function' || (typeof Blob !== 'undefined' && toString$2.call(Blob) === '[object BlobConstructor]');
+    var withNativeFile$1 = typeof File === 'function' || (typeof File !== 'undefined' && toString$2.call(File) === '[object FileConstructor]');
 
     /**
      * Replaces every Buffer | ArrayBuffer in packet with a numbered placeholder.
@@ -2246,7 +2246,7 @@ var app = (function () {
         var placeholder = { _placeholder: true, num: buffers.length };
         buffers.push(data);
         return placeholder;
-      } else if (isArray$1(data)) {
+      } else if (isArray$2(data)) {
         var newData = new Array(data.length);
         for (var i = 0; i < data.length; i++) {
           newData[i] = _deconstructPacket(data[i], buffers);
@@ -2290,7 +2290,7 @@ var app = (function () {
         } else {
           throw new Error("illegal attachments");
         }
-      } else if (isArray$1(data)) {
+      } else if (isArray$2(data)) {
         for (var i = 0; i < data.length; i++) {
           data[i] = _reconstructPacket(data[i], buffers);
         }
@@ -2318,8 +2318,8 @@ var app = (function () {
         if (!obj) return obj;
 
         // convert any blob
-        if ((withNativeBlob && obj instanceof Blob) ||
-            (withNativeFile && obj instanceof File)) {
+        if ((withNativeBlob$1 && obj instanceof Blob) ||
+            (withNativeFile$1 && obj instanceof File)) {
           pendingBlobs++;
 
           // async filereader
@@ -2339,7 +2339,7 @@ var app = (function () {
           };
 
           fileReader.readAsArrayBuffer(obj); // blob -> arraybuffer
-        } else if (isArray$1(obj)) { // handle array
+        } else if (isArray$2(obj)) { // handle array
           for (var i = 0; i < obj.length; i++) {
             _removeBlobs(obj[i], i, obj);
           }
@@ -2874,75 +2874,67 @@ var app = (function () {
 
     /* global Blob File */
 
-    var hasBinary2;
-    var hasRequiredHasBinary2;
+    /*
+     * Module requirements.
+     */
 
-    function requireHasBinary2 () {
-    	if (hasRequiredHasBinary2) return hasBinary2;
-    	hasRequiredHasBinary2 = 1;
-    	/*
-    	 * Module requirements.
-    	 */
+    var isArray$1 = isarray;
 
-    	var isArray = isarray;
+    var toString$1 = Object.prototype.toString;
+    var withNativeBlob = typeof Blob === 'function' ||
+                            typeof Blob !== 'undefined' && toString$1.call(Blob) === '[object BlobConstructor]';
+    var withNativeFile = typeof File === 'function' ||
+                            typeof File !== 'undefined' && toString$1.call(File) === '[object FileConstructor]';
 
-    	var toString = Object.prototype.toString;
-    	var withNativeBlob = typeof Blob === 'function' ||
-    	                        typeof Blob !== 'undefined' && toString.call(Blob) === '[object BlobConstructor]';
-    	var withNativeFile = typeof File === 'function' ||
-    	                        typeof File !== 'undefined' && toString.call(File) === '[object FileConstructor]';
+    /**
+     * Module exports.
+     */
 
-    	/**
-    	 * Module exports.
-    	 */
+    var hasBinary2 = hasBinary;
 
-    	hasBinary2 = hasBinary;
+    /**
+     * Checks for binary data.
+     *
+     * Supports Buffer, ArrayBuffer, Blob and File.
+     *
+     * @param {Object} anything
+     * @api public
+     */
 
-    	/**
-    	 * Checks for binary data.
-    	 *
-    	 * Supports Buffer, ArrayBuffer, Blob and File.
-    	 *
-    	 * @param {Object} anything
-    	 * @api public
-    	 */
+    function hasBinary (obj) {
+      if (!obj || typeof obj !== 'object') {
+        return false;
+      }
 
-    	function hasBinary (obj) {
-    	  if (!obj || typeof obj !== 'object') {
-    	    return false;
-    	  }
+      if (isArray$1(obj)) {
+        for (var i = 0, l = obj.length; i < l; i++) {
+          if (hasBinary(obj[i])) {
+            return true;
+          }
+        }
+        return false;
+      }
 
-    	  if (isArray(obj)) {
-    	    for (var i = 0, l = obj.length; i < l; i++) {
-    	      if (hasBinary(obj[i])) {
-    	        return true;
-    	      }
-    	    }
-    	    return false;
-    	  }
+      if ((typeof Buffer === 'function' && Buffer.isBuffer && Buffer.isBuffer(obj)) ||
+        (typeof ArrayBuffer === 'function' && obj instanceof ArrayBuffer) ||
+        (withNativeBlob && obj instanceof Blob) ||
+        (withNativeFile && obj instanceof File)
+      ) {
+        return true;
+      }
 
-    	  if ((typeof Buffer === 'function' && Buffer.isBuffer && Buffer.isBuffer(obj)) ||
-    	    (typeof ArrayBuffer === 'function' && obj instanceof ArrayBuffer) ||
-    	    (withNativeBlob && obj instanceof Blob) ||
-    	    (withNativeFile && obj instanceof File)
-    	  ) {
-    	    return true;
-    	  }
+      // see: https://github.com/Automattic/has-binary/pull/4
+      if (obj.toJSON && typeof obj.toJSON === 'function' && arguments.length === 1) {
+        return hasBinary(obj.toJSON(), true);
+      }
 
-    	  // see: https://github.com/Automattic/has-binary/pull/4
-    	  if (obj.toJSON && typeof obj.toJSON === 'function' && arguments.length === 1) {
-    	    return hasBinary(obj.toJSON(), true);
-    	  }
+      for (var key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key) && hasBinary(obj[key])) {
+          return true;
+        }
+      }
 
-    	  for (var key in obj) {
-    	    if (Object.prototype.hasOwnProperty.call(obj, key) && hasBinary(obj[key])) {
-    	      return true;
-    	    }
-    	  }
-
-    	  return false;
-    	}
-    	return hasBinary2;
+      return false;
     }
 
     /**
@@ -3397,7 +3389,7 @@ var app = (function () {
 
     (function (exports) {
     	var keys$1 = keys;
-    	var hasBinary = requireHasBinary2();
+    	var hasBinary = hasBinary2;
     	var sliceBuffer = arraybuffer_slice;
     	var after = after_1;
     	var utf8$1 = utf8;
@@ -7320,26 +7312,18 @@ var app = (function () {
 
     var componentEmitterExports = componentEmitter.exports;
 
-    var toArray_1;
-    var hasRequiredToArray;
+    var toArray_1 = toArray$1;
 
-    function requireToArray () {
-    	if (hasRequiredToArray) return toArray_1;
-    	hasRequiredToArray = 1;
-    	toArray_1 = toArray;
+    function toArray$1(list, index) {
+        var array = [];
 
-    	function toArray(list, index) {
-    	    var array = [];
+        index = index || 0;
 
-    	    index = index || 0;
+        for (var i = index || 0; i < list.length; i++) {
+            array[i - index] = list[i];
+        }
 
-    	    for (var i = index || 0; i < list.length; i++) {
-    	        array[i - index] = list[i];
-    	    }
-
-    	    return array
-    	}
-    	return toArray_1;
+        return array
     }
 
     /**
@@ -7400,42 +7384,35 @@ var app = (function () {
      * @api private
      */
 
-    var hasRequiredParseqs;
+    parseqs.encode = function (obj) {
+      var str = '';
 
-    function requireParseqs () {
-    	if (hasRequiredParseqs) return parseqs;
-    	hasRequiredParseqs = 1;
-    	parseqs.encode = function (obj) {
-    	  var str = '';
+      for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+          if (str.length) str += '&';
+          str += encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]);
+        }
+      }
 
-    	  for (var i in obj) {
-    	    if (obj.hasOwnProperty(i)) {
-    	      if (str.length) str += '&';
-    	      str += encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]);
-    	    }
-    	  }
+      return str;
+    };
 
-    	  return str;
-    	};
+    /**
+     * Parses a simple querystring into an object
+     *
+     * @param {String} qs
+     * @api private
+     */
 
-    	/**
-    	 * Parses a simple querystring into an object
-    	 *
-    	 * @param {String} qs
-    	 * @api private
-    	 */
-
-    	parseqs.decode = function(qs){
-    	  var qry = {};
-    	  var pairs = qs.split('&');
-    	  for (var i = 0, l = pairs.length; i < l; i++) {
-    	    var pair = pairs[i].split('=');
-    	    qry[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-    	  }
-    	  return qry;
-    	};
-    	return parseqs;
-    }
+    parseqs.decode = function(qs){
+      var qry = {};
+      var pairs = qs.split('&');
+      for (var i = 0, l = pairs.length; i < l; i++) {
+        var pair = pairs[i].split('=');
+        qry[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+      }
+      return qry;
+    };
 
     (function (module, exports) {
     	/**
@@ -7444,12 +7421,12 @@ var app = (function () {
 
     	var parser = socket_ioParser;
     	var Emitter = componentEmitterExports;
-    	var toArray = requireToArray();
+    	var toArray = toArray_1;
     	var on = on_1;
     	var bind = componentBind;
     	var debug = browserExports$2('socket.io-client:socket');
-    	var parseqs = requireParseqs();
-    	var hasBin = requireHasBinary2();
+    	var parseqs$1 = parseqs;
+    	var hasBin = hasBinary2;
 
     	/**
     	 * Module exports.
@@ -7629,7 +7606,7 @@ var app = (function () {
     	  // write connect packet if necessary
     	  if ('/' !== this.nsp) {
     	    if (this.query) {
-    	      var query = typeof this.query === 'object' ? parseqs.encode(this.query) : this.query;
+    	      var query = typeof this.query === 'object' ? parseqs$1.encode(this.query) : this.query;
     	      debug('sending connect packet with query %s', query);
     	      this.packet({type: parser.CONNECT, query: query});
     	    } else {
