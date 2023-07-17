@@ -1,3 +1,5 @@
 import { writable } from "svelte/store";
 
-export const messages = writable(null);
+export const messages = writable([]);
+
+export const selectedMessage = writable(null);

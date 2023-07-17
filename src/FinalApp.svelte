@@ -7,8 +7,8 @@
   import AuthMainFinal from "./components/AuthMainFinal.svelte";
   import Test from "./Test.svelte";
   import { isAuthenticated, userDetails } from "./stores/authStores";
-  // import ChatWidget from "./components/ChatWidget/ChatWidget.svelte";
-  import ChatListing from "./components/ChatListing/ChatListing.svelte";
+  import ChatWidget from "./components/ChatWidget/ChatWidget.svelte";
+  import ChatListing from "./components/ChatWidget/components/ChatListing/ChatListing.svelte";
 
   export let app_id = 1;
   export let app_secret = 2;
@@ -58,7 +58,9 @@
 </script>
 
 <!-- *************************************** -->
-<!-- <button on:click={showChatWidget} class="cleandesk-launcher-frame">Chat</button> -->
+{#if !isVisible}
+  <button on:click={showChatWidget} class="cleandesk-launcher-frame">Chat</button>
+{/if}
 
 
 
@@ -67,17 +69,18 @@
 <AuthMainFinal {app_id} {app_secret} {customer_id} />
 {/if}
 
-<!-- {#if $isAuthenticated === true}
+{#if $isAuthenticated === true}
   <div style="{isVisible ? 'display: block' : 'display: none'}">
-    <ChatWidget />
+    <ChatWidget {isVisible} on:closeWidget={item => isVisible = !item} />
   </div>
-{/if} -->
+{/if}
 
-<ChatListing />
+
+<!-- <Test /> -->
 
 <span style="display: none;" class={cssKeep}><span class={cssKeep} /><div></div><div id={cssJsKeep}></div><p></p><ul></ul> <li></li> </span>
 
-
+<!-- <ChatListing /> -->
 
 <!-- *************************************** -->
 
@@ -114,6 +117,30 @@
       0px 3px 12px rgba(0, 18, 26, 0.16), 0 2px 14px 0 rgba(0, 18, 26, 0.2);
     opacity: 1;
   }
+  .close-widget-button {
+    box-shadow: 0px 2px 4px rgba(0, 18, 26, 0.08),
+      0px 2px 16px rgba(0, 18, 26, 0.16);
+    z-index: 2147482999 !important;
+    position: fixed !important;
+    bottom: 590px;
+    /* right: 20px; */
+    height: 56px !important;
+    width: 56px !important;
+    border-radius: 100px !important;
+    overflow: hidden !important;
+    background: #0000ff !important;
+    color: #fff !important;
+    opacity: 0.9;
+    transition: box-shadow 0.26s cubic-bezier(0.38, 0, 0.22, 1),
+      opacity 0.26s ease-in-out;
+  }
+
+  .close-widget-button:hover {
+    cursor: pointer;
+    box-shadow: 0px 2px 4px rgba(0, 18, 26, 0.08),
+      0px 3px 12px rgba(0, 18, 26, 0.16), 0 2px 14px 0 rgba(0, 18, 26, 0.2);
+    opacity: 1;
+  }
 
   p {
     font-weight: 400;
@@ -122,9 +149,10 @@
   .chat-widget-container {
     /* position: absolute; */
     position: fixed !important;
-    bottom: calc(100px);
+    bottom: 20px;
     z-index: 999999 !important;
-    right: 20px;
+    /* TODO make it conditional */
+    /* right: 320px; */
     width: 400px !important;
     height: 560px !important;
     /* min-height: 300px !important;
@@ -466,14 +494,14 @@
   }
 
   li {
-    padding: 15px;
+    /* padding: 15px; */
     box-sizing: border-box;
     transition: 0.2s all;
     font-size: 14px;
   }
 
   li:hover {
-    background-color: #eeeeee;
+    background-color: #E2E7FB;
   }
   h5 {
     margin: 12px ;
@@ -481,12 +509,16 @@
   }
   p {
     margin: 0 12px 12px 12px;
-    white-space: nowrap;
+    /* white-space: nowrap; */
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .list-img {
     margin-left: 12px;
+  }
+
+  .chat-list {
+    height: calc(100vh - 130px);
   }
 
 </style>

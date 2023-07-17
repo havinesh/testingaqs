@@ -1,8 +1,8 @@
 import Cookies from "js-cookie";
 
-export const TOKEN_KEY = "userToken";
-export const PERSON_ID = "personId";
-export const PERSON_ORG_OFFICE_ID = "personOrgOfficeId";
+export const TOKEN_KEY = "cleandesk-userToken";
+export const PERSON_ID = "cleandesk-personId";
+export const PERSON_ORG_OFFICE_ID = "cleandesk-personOrgOfficeId";
 
 // export function getCookie(name) {
 //   if (navigator.cookieEnabled) {
